@@ -1,32 +1,29 @@
+from gpiozero import DistanceSensor,LED,Button
 from datetime import datetime
-from gpiozero import LED
-import psutil
 from time import sleep
 
-red = LED(23)
-yellow = LED(22)
+btn = Button(17)
+led = LED(27)
+led.off()
+ultrasonic = DistanceSensor(echo=21, trigger=20)
+span = 20
 
-LOG_FILE = "/home/pi/Unit_Practice/disk_usage_log.txt"
+LOG_FILE = "/home/pi/Unit_Practice/distance_log.txt"
 
-def log(disk_usage):
+def log(distance):
     with open(LOG_FILE, "a") as f:
         timestamp = datetime.now().strftime("%d-%m-%Y %SS:%MM:%HH")
-        f.write(f"{timestamp}: {disk_usage}%\n")
+        f.write(f"{timestamp}: {distance}%\n")
         f.close()
 
 while True:
-    disk_usage = psutil.disk_usage("/").percent
-    if disk_usage > 60:
-        red.on()
-        yellow.off()
-    elif 30 <= disk_usage <= 60:
-        red.off()
-        yellow.on()
+    distance = round(ultrasonic.distance*100, 3)
+    print(distance)
+    if btn.is_pressed:
+        log(distance)
+
+    if distance < 20:
+        led.on()
     else:
-        red.off()
-        yellow.off()
-    log(disk_usage)
-    
-    sleep(5)
-
-
+        led.off()
+    sleep(1)   
